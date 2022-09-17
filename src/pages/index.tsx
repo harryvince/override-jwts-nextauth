@@ -1,4 +1,5 @@
 import type { NextPage } from "next";
+import { getSession } from "next-auth/react";
 import Head from "next/head";
 import { trpc } from "../utils/trpc";
 
@@ -7,6 +8,21 @@ type TechnologyCardProps = {
   description: string;
   documentation: string;
 };
+
+export async function getServerSideProps(context: any) {
+  const session = await getSession(context);
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/api/auth/signin',
+        permenant: false
+      }
+    }
+  }
+  return {
+    props: { sessionData: session }, // will be passed to the page component as props
+  }
+}
 
 const Home: NextPage = () => {
   const hello = trpc.useQuery(["example.hello", { text: "from tRPC" }]);

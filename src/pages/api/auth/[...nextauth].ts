@@ -119,5 +119,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // ...add more providers here
     ],
   };
-  return await NextAuth(req, res, authOptions)
+  return await NextAuth(req, res, authOptions) as NextAuthOptions;
 }
