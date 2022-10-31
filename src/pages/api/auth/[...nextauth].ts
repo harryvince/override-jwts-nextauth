@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const sessionToken = generateSessionToken();
             const sessionExpiry = new Date(Date.now() + ( 3600 * 1000 * 24 ));
 
-            const test = await PrismaAdapter(prisma).createSession({
+            const validSession = await PrismaAdapter(prisma).createSession({
               sessionToken: sessionToken,
               expires: sessionExpiry,
               //@ts-ignore
@@ -47,12 +47,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               }
             });
 
-            console.log(test);
-
-            const cookies = new Cookies(req, res);
-
-            cookies.set(`next-auth.session-token`, sessionToken, {
-              expires: sessionExpiry
+            const cookies = new Cookies(req, res, { secure: (process.env.NODE_ENV === 'production') ? true : false });
+            cookies.set(`${(process.env.NODE_ENV === 'production') ? "__Secure-" : ""}next-auth.session-token`, validSession.sessionToken, {
+              expires: sessionExpiry,
+              secure: (process.env.NODE_ENV === 'production') ? true : false 
             });
           }
         }
@@ -67,8 +65,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           req.query.nextauth!.includes("credentials") &&
           req.method === "POST"
         ) {
-          const cookies = new Cookies(req, res);
-          const cookie = cookies.get("next-auth.session-token");
+          const cookies = new Cookies(req, res, { secure: (process.env.NODE_ENV === 'production') ? true : false });
+          const cookie = cookies.get(`${(process.env.NODE_ENV === 'production') ? "__Secure-" : ""}next-auth.session-token`);
 
           if (cookie) return cookie;
           else return "";

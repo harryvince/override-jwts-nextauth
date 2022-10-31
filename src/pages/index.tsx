@@ -1,7 +1,9 @@
+import Cookies from "cookies";
 import type { NextPage } from "next";
 import { getSession } from "next-auth/react";
 import Head from "next/head";
 import { trpc } from "../utils/trpc";
+import redirect from "../utils/redirect";
 
 type TechnologyCardProps = {
   name: string;
@@ -11,13 +13,11 @@ type TechnologyCardProps = {
 
 export async function getServerSideProps(context: any) {
   const session = await getSession(context);
+  
   if (!session) {
-    return {
-      redirect: {
-        destination: '/api/auth/signin',
-        permenant: false
-      }
-    }
+    const cookies = new Cookies(context.req, context.res, { secure: (process.env.NODE_ENV === 'production') ? true : false });
+    cookies.set(`${(process.env.NODE_ENV === 'production') ? "__Secure-" : ""}next-auth.session-token`, "invalid", {expires: new Date(Date.now()), secure: (process.env.NODE_ENV === 'production') ? true : false });
+    return redirect('/api/auth/signin')
   }
   return {
     props: { sessionData: session }, // will be passed to the page component as props
